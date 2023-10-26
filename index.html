@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+      }
+      canvas {
+        border: 2px solid black;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+    <script>
+      const canvas = document.getElementById("gameCanvas");
+      const ctx = canvas.getContext("2d");
+
+      const cellSize = 20;
+      let snake;
+      let food;
+
+      function init() {
+        snake = [{ x: 5, y: 5 }];
+        food = spawnFood();
+
+        document.addEventListener("keydown", changeDirection);
+
+        const gameLoop = setInterval(() => {
+          moveSnake();
+          if (checkCollision()) {
+            clearInterval(gameLoop);
+            alert("Game Over!");
+            location.reload();
+          }
+          if (checkFood()) {
+            snake.unshift({ ...food });
+            food = spawnFood();
+          }
+          draw();
+        }, 100);
+      }
+
+      function spawnFood() {
+        const x =
+          Math.floor(Math.random() * (canvas.width / cellSize)) * cellSize;
+        const y =
+          Math.floor(Math.random() * (canvas.height / cellSize)) * cellSize;
+        return { x, y };
+      }
+
+      function changeDirection(e) {
+        const code = e.keyCode;
+        if (code === 37 && snakeDirection !== "right") snakeDirection = "left";
+        if (code === 38 && snakeDirection !== "down") snakeDirection = "up";
+        if (code === 39 && snakeDirection !== "left") snakeDirection = "right";
+        if (code === 40 && snakeDirection !== "up") snakeDirection = "down";
+      }
+
+      let snakeDirection = "right";
+
+      function moveSnake() {
+        const head = { ...snake[0] };
+        if (snakeDirection === "right") head.x += cellSize;
+        if (snakeDirection === "left") head.x -= cellSize;
+        if (snakeDirection === "up") head.y -= cellSize;
+        if (snakeDirection === "down") head.y += cellSize;
+        snake.unshift(head);
+        if (!checkFood()) snake.pop();
+      }
+
+      function checkCollision() {
+        const head = snake[0];
+        return (
+          head.x < 0 ||
+          head.x >= canvas.width ||
+          head.y < 0 ||
+          head.y >= canvas.height ||
+          snake
+            .slice(1)
+            .some((segment) => segment.x === head.x && segment.y === head.y)
+        );
+      }
+
+      function checkFood() {
+        const head = snake[0];
+        return head.x === food.x && head.y === food.y;
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Draw Food
+        ctx.fillStyle = "red";
+        ctx.fillRect(food.x, food.y, cellSize, cellSize);
+
+        // Draw Snake
+        ctx.fillStyle = "green";
+        snake.forEach((segment) => {
+          ctx.fillRect(segment.x, segment.y, cellSize, cellSize);
+        });
+      }
+
+      init();
+    </script>
+  </body>
+</html>
